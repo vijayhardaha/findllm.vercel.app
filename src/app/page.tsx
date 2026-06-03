@@ -8,6 +8,44 @@ import type { ApiResponse, Model } from '@/types/models';
 export const dynamic = 'force-dynamic';
 
 /**
+ * Shape returned by normalizeModelCosts.
+ *
+ * @type {NormalizedCostsType}
+ */
+type NormalizedCostsType = {
+  free: boolean;
+  inputCost: number;
+  outputCost: number;
+  reasoningCost: number;
+  cacheReadCost: number;
+  cacheWriteCost: number;
+  audioInputCost: number;
+  audioOutputCost: number;
+};
+
+/**
+ * Shape returned by normalizeModelLimits.
+ *
+ * @type {NormalizedLimitsType}
+ */
+type NormalizedLimitsType = { context: number; inputLimit: number; outputLimit: number };
+
+/**
+ * Shape returned by normalizeModelFlags.
+ *
+ * @type {NormalizedFlagsType}
+ */
+type NormalizedFlagsType = {
+  toolCall: boolean;
+  reasoning: boolean;
+  structuredOutput: boolean;
+  temperature: boolean;
+  weights: boolean;
+  inputModality: string[];
+  outputModality: string[];
+};
+
+/**
  * Fetches raw API data from models.dev endpoint.
  *
  * @returns {Promise<ApiResponse>} The raw API response.
@@ -50,9 +88,9 @@ function isFree(cost: { input?: number } | undefined): boolean {
  *
  * @param {ApiResponse[string]['models'][string]} model - Raw model data from the API.
  *
- * @returns {object} Normalized cost fields.
+ * @returns {NormalizedCostsType} Normalized cost fields.
  */
-function normalizeModelCosts(model: ApiResponse[string]['models'][string]) {
+function normalizeModelCosts(model: ApiResponse[string]['models'][string]): NormalizedCostsType {
   const c = model.cost;
   return {
     free: isFree(c),
@@ -83,9 +121,9 @@ function limitVal(limits: Record<string, number | undefined> | undefined, key: s
  *
  * @param {ApiResponse[string]['models'][string]} model - Raw model data from the API.
  *
- * @returns {object} Normalized limit fields.
+ * @returns {NormalizedLimitsType} Normalized limit fields.
  */
-function normalizeModelLimits(model: ApiResponse[string]['models'][string]) {
+function normalizeModelLimits(model: ApiResponse[string]['models'][string]): NormalizedLimitsType {
   const l = model.limit;
   return { context: limitVal(l, 'context'), inputLimit: limitVal(l, 'input'), outputLimit: limitVal(l, 'output') };
 }
@@ -118,9 +156,9 @@ function orDefault(arr: string[] | undefined, fallback: string[]): string[] {
  *
  * @param {ApiResponse[string]['models'][string]} model - Raw model data from the API.
  *
- * @returns {object} Normalized boolean and modality fields.
+ * @returns {NormalizedFlagsType} Normalized boolean and modality fields.
  */
-function normalizeModelFlags(model: ApiResponse[string]['models'][string]) {
+function normalizeModelFlags(model: ApiResponse[string]['models'][string]): NormalizedFlagsType {
   return {
     toolCall: orFalse(model.tool_call),
     reasoning: orFalse(model.reasoning),
