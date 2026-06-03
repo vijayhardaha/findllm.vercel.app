@@ -157,22 +157,6 @@ function filterByContext(model: Model, filters: FilterState): boolean {
 }
 
 /**
- * Checks if a parsed year value falls within the specified min/max year bounds.
- *
- * @param {number} yearValue - The extracted year value.
- * @param {string | undefined} minYear - Minimum year bound as string.
- * @param {string | undefined} maxYear - Maximum year bound as string.
- *
- * @returns {boolean} True if the year is within bounds or no bounds are set.
- */
-function matchesYearRange(yearValue: number, minYear: string | undefined, maxYear: string | undefined): boolean {
-  if (!minYear && !maxYear) return true;
-  if (minYear && yearValue < parseInt(minYear, 10)) return false;
-  if (maxYear && yearValue > parseInt(maxYear, 10)) return false;
-  return true;
-}
-
-/**
  * Checks if a model's knowledge cutoff year falls within the filter range.
  *
  * @param {Model} model - The model to check.
@@ -182,7 +166,7 @@ function matchesYearRange(yearValue: number, minYear: string | undefined, maxYea
  */
 function filterByKnowledgeYear(model: Model, filters: FilterState): boolean {
   const knowledgeYearValue = extractYear(model.knowledge);
-  return matchesYearRange(knowledgeYearValue, filters.minKnowledge, filters.maxKnowledge);
+  return withinRange(knowledgeYearValue, filters.minKnowledge, filters.maxKnowledge);
 }
 
 /**
@@ -195,7 +179,7 @@ function filterByKnowledgeYear(model: Model, filters: FilterState): boolean {
  */
 function filterByReleaseYear(model: Model, filters: FilterState): boolean {
   const releaseYearValue = extractYear(model.releaseDate);
-  return matchesYearRange(releaseYearValue, filters.minReleaseYear, filters.maxReleaseYear);
+  return withinRange(releaseYearValue, filters.minReleaseYear, filters.maxReleaseYear);
 }
 
 /**
