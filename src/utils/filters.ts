@@ -34,6 +34,71 @@ function filterBySearch(model: Model, search: string): boolean {
 }
 
 /**
+ * Checks if a model matches the specified provider.
+ *
+ * @param {Model} model - The model to check.
+ * @param {string | undefined} provider - Target provider name; skips check when undefined.
+ *
+ * @returns {boolean} True if the provider matches or no filter is set.
+ */
+function matchesProvider(model: Model, provider: string | undefined): boolean {
+  return !provider || model.provider === provider;
+}
+
+/**
+ * Checks if a model matches the specified family.
+ *
+ * @param {Model} model - The model to check.
+ * @param {string | undefined} family - Target model family; skips check when undefined.
+ *
+ * @returns {boolean} True if the family matches or no filter is set.
+ */
+function matchesFamily(model: Model, family: string | undefined): boolean {
+  return !family || model.family === family;
+}
+
+/**
+ * Checks if a boolean field matches a nullable filter value.
+ *
+ * @param {boolean} modelValue - The model's boolean field value.
+ * @param {boolean | null} filterValue - The filter value; null skips the check.
+ *
+ * @returns {boolean} True when the filter is null or the values match.
+ */
+function matchesBooleanField(modelValue: boolean, filterValue: boolean | null): boolean {
+  return filterValue === null || modelValue === filterValue;
+}
+
+/**
+ * Checks if a model's boolean filters (toolCall, reasoning, free) match.
+ *
+ * @param {Model} model - The model to check.
+ * @param {FilterState} filters - Filter state.
+ *
+ * @returns {boolean} True if the model passes all boolean filter checks.
+ */
+function matchesBooleans(model: Model, filters: FilterState): boolean {
+  if (!matchesBooleanField(model.toolCall, filters.toolCall)) return false;
+  if (!matchesBooleanField(model.reasoning, filters.reasoning)) return false;
+  if (!matchesBooleanField(model.free, filters.free)) return false;
+  return true;
+}
+
+/**
+ * Checks if a model's modality fields match the filters.
+ *
+ * @param {Model} model - The model to check.
+ * @param {FilterState} filters - Filter state.
+ *
+ * @returns {boolean} True if the model passes all modality checks.
+ */
+function matchesModality(model: Model, filters: FilterState): boolean {
+  if (filters.inputModality && !model.inputModality.includes(filters.inputModality)) return false;
+  if (filters.outputModality && !model.outputModality.includes(filters.outputModality)) return false;
+  return true;
+}
+
+/**
  * Checks if a model matches the exact match filters (provider, family, booleans).
  *
  * @param {Model} model - The model to check.
@@ -42,14 +107,26 @@ function filterBySearch(model: Model, search: string): boolean {
  * @returns {boolean} True if the model passes all exact match checks.
  */
 function filterByExactMatch(model: Model, filters: FilterState): boolean {
-  if (filters.provider && model.provider !== filters.provider) return false;
-  if (filters.family && model.family !== filters.family) return false;
-  if (filters.toolCall !== null && model.toolCall !== filters.toolCall) return false;
-  if (filters.reasoning !== null && model.reasoning !== filters.reasoning) return false;
-  if (filters.free !== null && model.free !== filters.free) return false;
-  if (filters.inputModality && !model.inputModality.includes(filters.inputModality)) return false;
-  if (filters.outputModality && !model.outputModality.includes(filters.outputModality)) return false;
+  return (
+    matchesProvider(model, filters.provider)
+    && matchesFamily(model, filters.family)
+    && matchesBooleans(model, filters)
+    && matchesModality(model, filters)
+  );
+}
 
+/**
+ * Checks if a numeric value falls within a specified min/max range.
+ *
+ * @param {number} value - The value to check.
+ * @param {string | undefined} min - Minimum bound as string; skips check when undefined.
+ * @param {string | undefined} max - Maximum bound as string; skips check when undefined.
+ *
+ * @returns {boolean} True if the value is within range or no bounds are set.
+ */
+function withinRange(value: number, min: string | undefined, max: string | undefined): boolean {
+  if (min && value < parseFloat(min)) return false;
+  if (max && value > parseFloat(max)) return false;
   return true;
 }
 
@@ -62,11 +139,8 @@ function filterByExactMatch(model: Model, filters: FilterState): boolean {
  * @returns {boolean} True if the model passes all cost range checks.
  */
 function filterByCost(model: Model, filters: FilterState): boolean {
-  if (filters.minInputCost && model.inputCost < parseFloat(filters.minInputCost)) return false;
-  if (filters.maxInputCost && model.inputCost > parseFloat(filters.maxInputCost)) return false;
-  if (filters.minOutputCost && model.outputCost < parseFloat(filters.minOutputCost)) return false;
-  if (filters.maxOutputCost && model.outputCost > parseFloat(filters.maxOutputCost)) return false;
-
+  if (!withinRange(model.inputCost, filters.minInputCost, filters.maxInputCost)) return false;
+  if (!withinRange(model.outputCost, filters.minOutputCost, filters.maxOutputCost)) return false;
   return true;
 }
 
@@ -79,9 +153,22 @@ function filterByCost(model: Model, filters: FilterState): boolean {
  * @returns {boolean} True if the model passes context range checks.
  */
 function filterByContext(model: Model, filters: FilterState): boolean {
-  if (filters.minContext && model.context < parseInt(filters.minContext, 10)) return false;
-  if (filters.maxContext && model.context > parseInt(filters.maxContext, 10)) return false;
+  return withinRange(model.context, filters.minContext, filters.maxContext);
+}
 
+/**
+ * Checks if a parsed year value falls within the specified min/max year bounds.
+ *
+ * @param {number} yearValue - The extracted year value.
+ * @param {string | undefined} minYear - Minimum year bound as string.
+ * @param {string | undefined} maxYear - Maximum year bound as string.
+ *
+ * @returns {boolean} True if the year is within bounds or no bounds are set.
+ */
+function matchesYearRange(yearValue: number, minYear: string | undefined, maxYear: string | undefined): boolean {
+  if (!minYear && !maxYear) return true;
+  if (minYear && yearValue < parseInt(minYear, 10)) return false;
+  if (maxYear && yearValue > parseInt(maxYear, 10)) return false;
   return true;
 }
 
@@ -94,14 +181,8 @@ function filterByContext(model: Model, filters: FilterState): boolean {
  * @returns {boolean} True if the model passes knowledge year range checks.
  */
 function filterByKnowledgeYear(model: Model, filters: FilterState): boolean {
-  if (!filters.minKnowledge && !filters.maxKnowledge) return true;
-
   const knowledgeYearValue = extractYear(model.knowledge);
-
-  if (filters.minKnowledge && knowledgeYearValue < parseInt(filters.minKnowledge, 10)) return false;
-  if (filters.maxKnowledge && knowledgeYearValue > parseInt(filters.maxKnowledge, 10)) return false;
-
-  return true;
+  return matchesYearRange(knowledgeYearValue, filters.minKnowledge, filters.maxKnowledge);
 }
 
 /**
@@ -113,13 +194,25 @@ function filterByKnowledgeYear(model: Model, filters: FilterState): boolean {
  * @returns {boolean} True if the model passes release year range checks.
  */
 function filterByReleaseYear(model: Model, filters: FilterState): boolean {
-  if (!filters.minReleaseYear && !filters.maxReleaseYear) return true;
-
   const releaseYearValue = extractYear(model.releaseDate);
+  return matchesYearRange(releaseYearValue, filters.minReleaseYear, filters.maxReleaseYear);
+}
 
-  if (filters.minReleaseYear && releaseYearValue < parseInt(filters.minReleaseYear, 10)) return false;
-  if (filters.maxReleaseYear && releaseYearValue > parseInt(filters.maxReleaseYear, 10)) return false;
-
+/**
+ * Checks if a single model passes all active filters.
+ *
+ * @param {Model} modelItem - The model to check.
+ * @param {FilterState} filters - Filter state object.
+ *
+ * @returns {boolean} True if the model passes all filter checks.
+ */
+function passesAllFilters(modelItem: Model, filters: FilterState): boolean {
+  if (filters.search && !filterBySearch(modelItem, filters.search)) return false;
+  if (!filterByExactMatch(modelItem, filters)) return false;
+  if (!filterByCost(modelItem, filters)) return false;
+  if (!filterByContext(modelItem, filters)) return false;
+  if (!filterByKnowledgeYear(modelItem, filters)) return false;
+  if (!filterByReleaseYear(modelItem, filters)) return false;
   return true;
 }
 
@@ -132,14 +225,5 @@ function filterByReleaseYear(model: Model, filters: FilterState): boolean {
  * @returns {Model[]} Filtered models array.
  */
 export const applyFilters = (models: Model[], filters: FilterState): Model[] => {
-  return models.filter((modelItem) => {
-    if (filters.search && !filterBySearch(modelItem, filters.search)) return false;
-    if (!filterByExactMatch(modelItem, filters)) return false;
-    if (!filterByCost(modelItem, filters)) return false;
-    if (!filterByContext(modelItem, filters)) return false;
-    if (!filterByKnowledgeYear(modelItem, filters)) return false;
-    if (!filterByReleaseYear(modelItem, filters)) return false;
-
-    return true;
-  });
+  return models.filter((modelItem) => passesAllFilters(modelItem, filters));
 };
