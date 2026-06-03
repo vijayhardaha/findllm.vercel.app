@@ -23,6 +23,116 @@ async function fetchRawData(): Promise<ApiResponse> {
 }
 
 /**
+ * Safely extracts a numeric property from an optional object, defaulting to 0.
+ *
+ * @param {Record<string, number | undefined> | undefined} obj - Optional object.
+ * @param {string} key - Property key to extract.
+ *
+ * @returns {number} The property value or 0 if missing.
+ */
+function numProp(obj: Record<string, number | undefined> | undefined, key: string): number {
+  return obj?.[key] ?? 0;
+}
+
+/**
+ * Checks if input cost is zero (free model).
+ *
+ * @param {{ input?: number } | undefined} cost - Optional cost object.
+ *
+ * @returns {boolean} True if input cost is zero.
+ */
+function isFree(cost: { input?: number } | undefined): boolean {
+  return cost?.input == 0;
+}
+
+/**
+ * Normalizes cost-related fields from a raw model entry.
+ *
+ * @param {ApiResponse[string]['models'][string]} model - Raw model data from the API.
+ *
+ * @returns {object} Normalized cost fields.
+ */
+function normalizeModelCosts(model: ApiResponse[string]['models'][string]) {
+  const c = model.cost;
+  return {
+    free: isFree(c),
+    inputCost: numProp(c, 'input'),
+    outputCost: numProp(c, 'output'),
+    reasoningCost: numProp(c, 'reasoning'),
+    cacheReadCost: numProp(c, 'cache_read'),
+    cacheWriteCost: numProp(c, 'cache_write'),
+    audioInputCost: numProp(c, 'audio_input'),
+    audioOutputCost: numProp(c, 'audio_output'),
+  };
+}
+
+/**
+ * Safely extracts a limit value from the model limits object, defaulting to 0.
+ *
+ * @param {Record<string, number | undefined> | undefined} limits - Optional limits object.
+ * @param {string} key - Property key to extract.
+ *
+ * @returns {number} The limit value or 0.
+ */
+function limitVal(limits: Record<string, number | undefined> | undefined, key: string): number {
+  return limits?.[key] ?? 0;
+}
+
+/**
+ * Normalizes limit-related fields from a raw model entry.
+ *
+ * @param {ApiResponse[string]['models'][string]} model - Raw model data from the API.
+ *
+ * @returns {object} Normalized limit fields.
+ */
+function normalizeModelLimits(model: ApiResponse[string]['models'][string]) {
+  const l = model.limit;
+  return { context: limitVal(l, 'context'), inputLimit: limitVal(l, 'input'), outputLimit: limitVal(l, 'output') };
+}
+
+/**
+ * Coerces an optional boolean to a default false.
+ *
+ * @param {boolean | undefined} value - The optional boolean value.
+ *
+ * @returns {boolean} False when undefined, otherwise the boolean value.
+ */
+function orFalse(value: boolean | undefined): boolean {
+  return value ?? false;
+}
+
+/**
+ * Coerces an optional string array to a default fallback.
+ *
+ * @param {string[] | undefined} arr - The optional array.
+ * @param {string[]} fallback - Default fallback value.
+ *
+ * @returns {string[]} The array or fallback value.
+ */
+function orDefault(arr: string[] | undefined, fallback: string[]): string[] {
+  return arr ?? fallback;
+}
+
+/**
+ * Normalizes boolean and modality fields from a raw model entry.
+ *
+ * @param {ApiResponse[string]['models'][string]} model - Raw model data from the API.
+ *
+ * @returns {object} Normalized boolean and modality fields.
+ */
+function normalizeModelFlags(model: ApiResponse[string]['models'][string]) {
+  return {
+    toolCall: orFalse(model.tool_call),
+    reasoning: orFalse(model.reasoning),
+    structuredOutput: orFalse(model.structured_output),
+    temperature: !!model.temperature,
+    weights: orFalse(model.weights),
+    inputModality: orDefault(model.modalities?.input, ['text']),
+    outputModality: orDefault(model.modalities?.output, ['text']),
+  };
+}
+
+/**
  * Transforms a single raw model entry into a Model object.
  *
  * @param {object} model - Raw model data from the API.
@@ -45,27 +155,12 @@ function transformModel(
     providerId,
     providerDoc,
     family: model.family || 'unknown',
-    free: model.cost?.input == 0 || false,
-    inputCost: model.cost?.input || 0,
-    outputCost: model.cost?.output || 0,
-    context: model.limit?.context || 0,
-    inputLimit: model.limit?.input || 0,
-    outputLimit: model.limit?.output || 0,
-    toolCall: model.tool_call || false,
-    reasoning: model.reasoning || false,
-    inputModality: model.modalities?.input || ['text'],
-    outputModality: model.modalities?.output || ['text'],
-    reasoningCost: model.cost?.reasoning || 0,
-    cacheReadCost: model.cost?.cache_read || 0,
-    cacheWriteCost: model.cost?.cache_write || 0,
-    audioInputCost: model.cost?.audio_input || 0,
-    audioOutputCost: model.cost?.audio_output || 0,
-    structuredOutput: model.structured_output || false,
-    temperature: !!model.temperature,
-    weights: model.weights || false,
     knowledge: model.knowledge || '',
     releaseDate: model.release_date || '',
     lastUpdated: model.last_updated || '',
+    ...normalizeModelCosts(model),
+    ...normalizeModelLimits(model),
+    ...normalizeModelFlags(model),
   };
 }
 
