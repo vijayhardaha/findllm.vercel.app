@@ -86,6 +86,7 @@ static/
 # ----------------------------------------------------------------------
 # Ai Coding Tools
 # ----------------------------------------------------------------------
+# AI agent caches and generated files.
 .agent
 .agents
 .aider
@@ -103,6 +104,7 @@ static/
 .cursor
 .devin
 .fallow
+.freebuff
 .gemini
 .gptscript
 .jina
@@ -115,7 +117,6 @@ static/
 .nexus
 .opencode
 .perplexity
-.pi
 .qoder
 .qwen
 .replit
