@@ -24,65 +24,6 @@ interface RangeFiltersSectionProps {
 }
 
 /**
- * Props for PriceRangeFilter sub-component.
- *
- * @interface PriceRangeFilterProps
- * @property {string} id - Unique identifier prefix for input elements.
- * @property {number} min - Minimum slider value.
- * @property {number} max - Maximum slider value.
- * @property {number} step - Slider step value.
- * @property {number} minValue - Current minimum value.
- * @property {number} maxValue - Current maximum value.
- * @property {(value: number) => void} onMinChange - Callback when min changes.
- * @property {(value: number) => void} onMaxChange - Callback when max changes.
- * @property {string} label - Label for the slider.
- */
-interface PriceRangeFilterProps {
-  id: string;
-  min: number;
-  max: number;
-  step: number;
-  minValue: number;
-  maxValue: number;
-  onMinChange: (value: number) => void;
-  onMaxChange: (value: number) => void;
-  label: string;
-}
-
-/**
- * Renders a single PriceRangeSlider with the given configuration.
- *
- * @param {PriceRangeFilterProps} props - Component props.
- *
- * @returns {JSX.Element} PriceRangeSlider wrapped with filter props.
- */
-function PriceRangeFilter({
-  id,
-  min,
-  max,
-  step,
-  minValue,
-  maxValue,
-  onMinChange,
-  onMaxChange,
-  label,
-}: PriceRangeFilterProps): JSX.Element {
-  return (
-    <PriceRangeSlider
-      id={id}
-      min={min}
-      max={max}
-      step={step}
-      minValue={minValue}
-      maxValue={maxValue}
-      onMinChange={onMinChange}
-      onMaxChange={onMaxChange}
-      label={label}
-    />
-  );
-}
-
-/**
  * Renders a year select filter for release or knowledge year.
  *
  * @param {object} params - Function params.
@@ -134,31 +75,42 @@ export function RangeFiltersSection({ filters, onFilterChange }: RangeFiltersSec
   const selectedReleaseYear = filters.minReleaseYear && filters.maxReleaseYear ? filters.minReleaseYear : '';
   const selectedKnowledgeYear = filters.minKnowledge && filters.maxKnowledge ? filters.minKnowledge : '';
 
+  const priceFilters = [
+    {
+      id: 'input-cost',
+      minValue: parseFloat(filters.minInputCost) || PRICE_RANGE_DEFAULTS.min,
+      maxValue: parseFloat(filters.maxInputCost) || PRICE_RANGE_DEFAULTS.max,
+      onMinChange: (value: number) => onFilterChange({ minInputCost: String(value) }),
+      onMaxChange: (value: number) => onFilterChange({ maxInputCost: String(value) }),
+      label: 'Input Cost ($/M)',
+    },
+    {
+      id: 'output-cost',
+      minValue: parseFloat(filters.minOutputCost) || PRICE_RANGE_DEFAULTS.min,
+      maxValue: parseFloat(filters.maxOutputCost) || PRICE_RANGE_DEFAULTS.max,
+      onMinChange: (value: number) => onFilterChange({ minOutputCost: String(value) }),
+      onMaxChange: (value: number) => onFilterChange({ maxOutputCost: String(value) }),
+      label: 'Output Cost ($/M)',
+    },
+  ] as const;
+
   return (
     <div id="range-filters-section" className="space-y-3 md:space-y-4">
-      <PriceRangeFilter
-        id="input-cost"
-        min={PRICE_RANGE_DEFAULTS.min}
-        max={PRICE_RANGE_DEFAULTS.max}
-        step={PRICE_RANGE_DEFAULTS.step}
-        minValue={parseFloat(filters.minInputCost) || PRICE_RANGE_DEFAULTS.min}
-        maxValue={parseFloat(filters.maxInputCost) || PRICE_RANGE_DEFAULTS.max}
-        onMinChange={(value) => onFilterChange({ minInputCost: String(value) })}
-        onMaxChange={(value) => onFilterChange({ maxInputCost: String(value) })}
-        label="Input Cost ($/M)"
-      />
-      <PriceRangeFilter
-        id="output-cost"
-        min={PRICE_RANGE_DEFAULTS.min}
-        max={PRICE_RANGE_DEFAULTS.max}
-        step={PRICE_RANGE_DEFAULTS.step}
-        minValue={parseFloat(filters.minOutputCost) || PRICE_RANGE_DEFAULTS.min}
-        maxValue={parseFloat(filters.maxOutputCost) || PRICE_RANGE_DEFAULTS.max}
-        onMinChange={(value) => onFilterChange({ minOutputCost: String(value) })}
-        onMaxChange={(value) => onFilterChange({ maxOutputCost: String(value) })}
-        label="Output Cost ($/M)"
-      />
-      <PriceRangeFilter
+      {priceFilters.map(({ id, minValue, maxValue, onMinChange, onMaxChange, label }) => (
+        <PriceRangeSlider
+          key={id}
+          id={id}
+          min={PRICE_RANGE_DEFAULTS.min}
+          max={PRICE_RANGE_DEFAULTS.max}
+          step={PRICE_RANGE_DEFAULTS.step}
+          minValue={minValue}
+          maxValue={maxValue}
+          onMinChange={onMinChange}
+          onMaxChange={onMaxChange}
+          label={label}
+        />
+      ))}
+      <PriceRangeSlider
         id="context-window"
         min={CONTEXT_WINDOW_DEFAULTS.min}
         max={CONTEXT_WINDOW_DEFAULTS.max}
