@@ -15,6 +15,18 @@ interface ModalityCellProps {
 }
 
 /**
+ * Icon lookup for modality types.
+ *
+ * @type {Record<string, JSX.Element>}
+ */
+const MODALITY_ICONS: Record<string, JSX.Element> = {
+  audio: <FileMusic className="h-4 w-4 text-black" aria-hidden="true" />,
+  video: <Video className="h-4 w-4 text-black" aria-hidden="true" />,
+  image: <ImageIcon className="h-4 w-4 text-black" aria-hidden="true" />,
+  pdf: <FileBox className="h-4 w-4 text-black" aria-hidden="true" />,
+};
+
+/**
  * Resolves modality icon element by label.
  *
  * @param {string} modality - Modality label.
@@ -22,12 +34,7 @@ interface ModalityCellProps {
  * @returns {JSX.Element} Modality icon.
  */
 function getModalityIcon(modality: string): JSX.Element {
-  if (modality === 'audio') return <FileMusic className="h-4 w-4 text-black" aria-hidden="true" />;
-  if (modality === 'video') return <Video className="h-4 w-4 text-black" aria-hidden="true" />;
-  if (modality === 'image') return <ImageIcon className="h-4 w-4 text-black" aria-hidden="true" />;
-  if (modality === 'pdf') return <FileBox className="h-4 w-4 text-black" aria-hidden="true" />;
-
-  return <FileText className="h-4 w-4 text-black" aria-hidden="true" />;
+  return MODALITY_ICONS[modality] ?? <FileText className="h-4 w-4 text-black" aria-hidden="true" />;
 }
 
 /**
