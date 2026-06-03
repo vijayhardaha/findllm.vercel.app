@@ -11,11 +11,6 @@ import { cn } from '@/utils';
 const Select = SelectPrimitive.Root;
 
 /**
- * SelectGroup component for grouping select items.
- */
-const SelectGroup = SelectPrimitive.Group;
-
-/**
  * SelectValue component displaying the current value.
  */
 const SelectValue = SelectPrimitive.Value;
@@ -154,7 +149,7 @@ function SelectContent({ className, children, ref, position = 'popper', ...props
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
-          className={cn('p-1', position === 'popper' && 'h-[var(--radix-select-trigger-height)] w-full')}
+          className={cn('p-1', position === 'popper' && 'h-(--radix-select-trigger-height) w-full')}
         >
           {children}
         </SelectPrimitive.Viewport>
@@ -191,7 +186,7 @@ function SelectItem({ className, children, ref, ...props }: SelectItemProps): JS
     <SelectPrimitive.Item
       ref={ref}
       className={cn(
-        'data-[highlighted]:bg-primary flex cursor-pointer items-center gap-2 px-3 py-2 pl-8 text-sm focus:outline-none data-[highlighted]:text-black',
+        'data-highlighted:bg-primary flex cursor-pointer items-center gap-2 px-3 py-2 pl-8 text-sm focus:outline-none data-highlighted:text-black',
         className
       )}
       {...props}
@@ -231,14 +226,4 @@ function SelectSeparator({ className, ref, ...props }: SelectSeparatorProps): JS
 }
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
-export {
-  Select,
-  SelectGroup,
-  SelectValue,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectSeparator,
-  SelectScrollUpButton,
-  SelectScrollDownButton,
-};
+export { Select, SelectValue, SelectTrigger, SelectContent, SelectItem };
