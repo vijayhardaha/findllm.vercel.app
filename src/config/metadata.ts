@@ -9,7 +9,7 @@ const title = 'LLM Finder - Compare AI Models, Pricing, Context & Reasoning';
  * Site description for LLM Finder.
  */
 const description =
-  'Compare AI models from OpenAI, Anthropic, Google, Meta, Mistral, DeepSeek, xAI and more. Filter LLMs by pricing, context window, reasoning, tool support, speed, multimodal capabilities, and free availability.';
+  'Compare AI models from OpenAI, Anthropic, Google, Meta, Mistral & more. Filter LLMs by pricing, context, reasoning, tool calling, speed, and multimodality.';
 
 /**
  * Site URL for LLM Finder.
