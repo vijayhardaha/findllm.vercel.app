@@ -12,9 +12,9 @@ import { Button } from '@/components/ui/Button';
 export function HeroSection(): JSX.Element {
   return (
     <section id="hero-section" className="border-4 border-black bg-white p-6 text-center md:p-12">
-      <h1 className="font-heading text-3xl font-black text-black uppercase md:text-5xl">
+      <h2 className="font-heading text-3xl font-black text-black uppercase md:text-5xl">
         Compare and Discover AI Models Instantly
-      </h1>
+      </h2>
 
       <p className="text-text-muted mt-4 text-base md:text-lg">
         Explore the latest LLMs from OpenAI, Anthropic, Google, DeepSeek, Mistral, Meta, xAI, and more. Filter by
