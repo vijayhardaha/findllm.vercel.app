@@ -2,19 +2,6 @@
   "name": "llm-finder",
   "version": "1.0.0",
   "description": "LLM Finder is a searchable directory of AI language models. Compare models from OpenAI, Anthropic, Google, Meta, Mistral, DeepSeek, xAI, and more — filtering by pricing, context window, reasoning capabilities, tool support, multimodal input/output, and free availability.",
-  "license": "MIT",
-  "author": {
-    "name": "Vijay Hardaha",
-    "url": "https://github.com/vijayhardaha/"
-  },
-  "homepage": "https://github.com/vijayhardaha/findllm.vercel.app.git",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/vijayhardaha/findllm.vercel.app.git"
-  },
-  "bugs": {
-    "url": "https://github.com/vijayhardaha/findllm.vercel.app/issues"
-  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build && next-sitemap",
@@ -22,10 +9,22 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write --log-level error .",
-    "format:check": "prettier --check --log-level error .",
-    "indexnow": "next-sitemap && bun run scripts/indexnow.ts",
+    "format:check": "prettier --check .",
     "tsc": "tsc --noEmit",
     "prepare": "husky"
+  },
+  "author": {
+    "name": "Vijay Hardaha",
+    "url": "https://github.com/vijayhardaha/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/vijayhardaha/findllm.vercel.app.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vijayhardaha/findllm.vercel.app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vijayhardaha/findllm.vercel.app/issues"
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.3.0",
