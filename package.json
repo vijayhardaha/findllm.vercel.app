@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write --log-level error .",
-    "format:check": "prettier --check .",
+    "format:check": "prettier --check --log-level error .",
     "tsc": "tsc --noEmit",
     "prepare": "husky"
   },
